@@ -35,6 +35,13 @@ void setup(void)
     u8g2.begin();
     u8g2.setFont(u8g2_font_spleen32x64_mn);
     u8g2.setCursor(0, 64 - 16);
+    u8g2.setContrast(255);
+
+    u8g2.clearBuffer();
+    u8g2.setCursor(0, 64 - 16);
+    u8g2.print("WAIT");
+
+    u8g2.sendBuffer();
 
 #ifdef DEBUG
     Serial.begin(115200);
