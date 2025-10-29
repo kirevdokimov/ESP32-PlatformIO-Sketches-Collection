@@ -20,13 +20,15 @@
 #include <SPI.h>
 #include <Wire.h>
 
+#define SLEEP_SEC 60 /* Time ESP32 will go to sleep (in seconds) */
+
 #define SENSOR_RX 17
 #define SENSOR_TX 16
 
 #define DISPLAY_SCL 22
 #define DISPLAY_SDA 21
 
-// #define DEBUG
+#define DEBUG
 
 #define ROTATION_MODE U8G2_R0 // R0 normal, R2 180 degree
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(ROTATION_MODE, U8X8_PIN_NONE, DISPLAY_SCL, DISPLAY_SDA);
@@ -35,16 +37,11 @@ void setup(void)
     u8g2.begin();
     u8g2.setFont(u8g2_font_spleen32x64_mn);
     u8g2.setCursor(0, 64 - 16);
-    u8g2.setContrast(255);
-
-    u8g2.clearBuffer();
-    u8g2.setCursor(0, 64 - 16);
-    u8g2.print("WAIT");
-
-    u8g2.sendBuffer();
+    u8g2.setContrast(1); // low contrast for saving power
 
 #ifdef DEBUG
     Serial.begin(115200);
+    Serial.println("Wake up");
 #endif
 
     // To talk to the sensor
@@ -101,11 +98,20 @@ void loop(void)
             u8g2.printf("%04d", measurement);
 
             u8g2.sendBuffer();
+
+#ifdef DEBUG
+            Serial.println("Going to sleep now");
+            Serial.flush();
+#endif
+
+            Serial2.flush();
+            esp_sleep_enable_timer_wakeup(SLEEP_SEC * 1000000);
+            esp_deep_sleep_start();
         }
         receivedMessage = "";
     }
 #ifdef DEBUG
     Serial.println("Take");
 #endif
-    delay(5000);
+    delay(1000);
 }
