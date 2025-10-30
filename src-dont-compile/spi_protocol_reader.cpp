@@ -18,7 +18,7 @@ void printBinary(uint8_t value);
 // SPI settings for PS2 protocol
 #define PS2_SPI_SPEED 250000   // 250kHz - PS2 controllers are slow
 #define PS2_SPI_MODE SPI_MODE3 // CPOL=1, CPHA=1 (idle high, sample on rising edge)
-#define PS2_SPI_ORDER LSBFIRST // PS2 uses LSB first
+#define PS2_SPI_ORDER LSBFIRST // PS2 uses LSB (Least significant bit) first
 
 // Debug settings
 #define DEBUG_TIMING true
@@ -50,8 +50,6 @@ void setup()
 
 void loop()
 {
-    testVoltageReading();
-    delay(1000);
 
     testBasicSPI();
     delay(1000);
@@ -60,43 +58,9 @@ void loop()
     delay(2000);
 
     Serial.println("----------------------------------------");
-    Serial.println("💡 TROUBLESHOOTING TIPS:");
-    Serial.println("   1. Disconnect PS2 controller and test if GPIO19 pullup works");
-    Serial.println("   2. Check PS2 pinout - DATA should go to MISO (pin 1)");
-    Serial.println("   3. Verify voltage divider: PS2_PIN → 1.8kΩ → ESP32 → 3.3kΩ → GND");
-    Serial.println("   4. Measure voltages with multimeter");
     delay(3000);
 }
 
-void testVoltageReading()
-{
-    Serial.println("=== VOLTAGE TEST ===");
-
-    // Test MISO line (should read controller responses)
-    Serial.print("MISO line state: ");
-    Serial.println(digitalRead(PS2_MISO) ? "HIGH (3.3V+)" : "LOW (0V)");
-
-    // Note: GPIO19 is not an ADC pin, so we can't read analog voltage
-    Serial.println("(GPIO19 is digital-only, cannot measure analog voltage)");
-
-    // Test if MISO pin can be pulled high (disconnect test)
-    Serial.println("Testing MISO pin isolation:");
-
-    // Temporarily disable SPI to test pin isolation
-    SPI.end();
-    pinMode(PS2_MISO, INPUT_PULLUP);
-    delay(10);
-    Serial.printf("  With pullup: %s\n", digitalRead(PS2_MISO) ? "HIGH" : "LOW");
-
-    pinMode(PS2_MISO, INPUT);
-    delay(10);
-    Serial.printf("  Without pullup: %s\n", digitalRead(PS2_MISO) ? "HIGH" : "LOW");
-
-    // Reinitialize SPI
-    SPI.begin(PS2_SCK, PS2_MISO, PS2_MOSI, PS2_SS);
-
-    Serial.println();
-}
 
 void testBasicSPI()
 {
